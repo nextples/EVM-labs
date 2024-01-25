@@ -1,0 +1,25 @@
+#include <stdlib.h>
+void swap(int *a, int *b) {
+    int tmp = *a;
+    *a = *b;
+    *b = tmp;
+}
+int* FillArray(long long n) {
+    int *array = calloc(n, sizeof(int));
+    for (int i = 0; i < n; i++) {
+        array[i] = rand() % 1000;
+    }
+    return array;
+}
+int main() {
+    long long n = 140000;
+    int *array = FillArray(n);
+    for (int i = 0; i < n; i++) {
+        for (int j = 0 ; j < n - 1; j++) {
+            if (array[j] > array[j + 1]) {
+                swap(&array[j], &array[j + 1]);
+            }
+        }
+    }
+    return 0;
+}

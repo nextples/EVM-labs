@@ -1,0 +1,176 @@
+	.file	"main.c"
+	.text
+	.globl	swap
+	.type	swap, @function
+swap:
+swap:
+.LFB6:
+	.cfi_startproc
+	endbr64
+	pushq	%rbp 			//Сохранение указателя старого кадра, эквивалентно созданию нового кадра стека
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp 		//Пусть %rbp указывает на начало нового кадра стека
+	.cfi_def_cfa_register 6
+	movq	%rdi, -24(%rbp) 	//Записываем &a в стек по адресу rbp-24
+	movq	%rsi, -32(%rbp)		//Записываем &b в стек по адресу rbp-32
+	movq	-24(%rbp), %rax		//Записываем &a в tmp
+	movl	(%rax), %eax		//Записываем tmp в eax
+	movl	%eax, -4(%rbp) 		//Записываем a в стек по адресу rbp-4
+	movq	-32(%rbp), %rax 	//Записываем &b в регистр rax
+	movl	(%rax), %edx		//Записываем b в регистр edx
+	movq	-24(%rbp), %rax		//Записываем &a в регистр rax
+	movl	%edx, (%rax)		//Записываем b в &a
+	movq	-32(%rbp), %rax		//Записываем &b в регистр rax
+	movl	-4(%rbp), %edx		//Записываем a в регистр edx
+	movl	%edx, (%rax)		//Записываем a в &b
+	nop
+	popq	%rbp 			//Записывает указатель на вершину стека в rbp, "забывает" о стеке в функции (возврат значения)
+	.cfi_def_cfa 7, 8
+	ret
+	.cfi_endproc
+.LFE6:
+	.size	swap, .-swap
+	.globl	FillArray
+	.type	FillArray, @function
+FillArray:
+.LFB7:
+  .cfi_startproc
+  endbr64
+  pushq  %rbp
+  .cfi_def_cfa_offset 16
+  .cfi_offset 6, -16
+  movq  %rsp, %rbp
+  .cfi_def_cfa_register 6
+  subq  $32, %rsp
+  movq  %rdi, -24(%rbp) 	//записываем n в стек по адресу rbp-24
+  movq  -24(%rbp), %rax		//записываем n в регистр rax
+  movl  $4, %esi		//записываем 4 в регистр esi (2ой аргумент calloc'а)
+  movq  %rax, %rdi		//записываем n в регистр rdi (1ый аргумент calloc'а)
+  call  calloc@PLT
+  movq  %rax, -8(%rbp)		//записываем &array в стек по адресу rbp-8
+  movl  $0, -12(%rbp) 		//записываем 0 в стек по адресу rbp-12 ()
+  jmp  .L3
+.L4: 	//тело цикла for
+  call  rand@PLT
+  movl  -12(%rbp), %edx 	//записываем 0 в регистр edx
+  movslq  %edx, %rdx		//записываем 0 в регистр rdx
+  leaq  0(,%rdx,4), %rcx	
+  movq  -8(%rbp), %rdx
+  addq  %rdx, %rcx
+  movslq  %eax, %rdx
+  imulq  $274877907, %rdx, %rdx
+  shrq  $32, %rdx
+  sarl  $6, %edx
+  movl  %eax, %esi
+  sarl  $31, %esi
+  subl  %esi, %edx
+  imull  $1000, %edx, %esi
+  subl  %esi, %eax
+  movl  %eax, %edx
+  movl  %edx, (%rcx)
+  addl  $1, -12(%rbp) 		//i++
+.L3: 	//цикл for
+  movl  -12(%rbp), %eax 	//записываем 0 в регистр eax
+  cltq
+  cmpq  %rax, -24(%rbp) 	//сравнение (i < n) 
+  jg  .L4
+  movq  -8(%rbp), %rax 		//записываем &array в регистр rax
+  leave
+  .cfi_def_cfa 7, 8
+  ret
+  .cfi_endproc
+.LFE7:
+  .size  FillArray, .-FillArray
+	.globl	main
+	.type	main, @function
+main:
+.LFB8:
+	.cfi_startproc
+	endbr64
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	subq	$48, %rsp
+	movq	$140000, -32(%rbp) 	//записываем 140000 в стек по адресу rbp-32
+	movq	-32(%rbp), %rax		//записываем 140000 в регистр rax (в n)
+	movq	%rax, %rdi 		//записываем n в регистр rdi
+	call	FillArray		
+	movq	%rax, -24(%rbp) 	//записываем &array в стек по адресу rbp-24
+	movl	$0, -40(%rbp)		//записываем 0 в стек по адресу rbp-40 
+	jmp	.L7
+.L11: 
+	movl	$0, -36(%rbp)		//записываем 0 в стек по адресу rbp-36
+	jmp	.L8
+.L10:
+	movl	-36(%rbp), %eax 	//записываем 0 в регистр eax (j = 0)
+	cltq
+	leaq	0(,%rax,4), %rdx	//записываем j*4 в регистр rdx
+	movq	-24(%rbp), %rax		//записываем &array в регистр rax
+	addq	%rdx, %rax 		//&array + j*4
+	movl	(%rax), %edx 		//записываем array[j] в регистр edx
+	movl	-36(%rbp), %eax		//записываем j в регистр eax
+	cltq
+	addq	$1, %rax		// j + 1
+	leaq	0(,%rax,4), %rcx	//записываем (j+1)*4 в регистр rcx
+	movq	-24(%rbp), %rax		//записываем &array в регистр rax
+	addq	%rcx, %rax		//&array + (j+1)*4
+	movl	(%rax), %eax		//записываем array[j+1] в регистр eax
+	cmpl	%eax, %edx		//сравнение (array[j] > array[j + 1]) (если нет то переход)
+	jle	.L9
+	movl	-36(%rbp), %eax 	//записываем j в регистр eax
+	cltq
+	addq	$1, %rax		//j+1
+	leaq	0(,%rax,4), %rdx	//записываем (j+1)*4 в регистр rdx
+	movq	-24(%rbp), %rax		//записываем &array в регистр rax
+	addq	%rax, %rdx		//&array + (j+1)*4
+	movl	-36(%rbp), %eax		//записываем j в регистр eax
+	cltq
+	leaq	0(,%rax,4), %rcx	//записываем j*4 в регистр rcx
+	movq	-24(%rbp), %rax		//записываем &array в регистр rax
+	addq	%rcx, %rax		//&array + j*4
+	movq	%rdx, %rsi		//передача аргументов в swap
+	movq	%rax, %rdi		//rsi=array[j+1]; rdi=array[j]
+	call	swap
+.L9:
+	addl	$1, -36(%rbp) 		//j++
+.L8: 	//цикл for(int j = 0; j < n-1; j++)
+	movl	-36(%rbp), %eax		//записываем 0 в регистр eax (j)
+	cltq
+	movq	-32(%rbp), %rdx		//записываем 140000 в регистр rdx (n)
+	subq	$1, %rdx		// (n-1)
+	cmpq	%rdx, %rax		//сравнение (j < n-1)
+	jl	.L10
+	addl	$1, -40(%rbp)		//i++
+.L7: 	//цикл for(int = 0; i < n; i++)
+	movl	-40(%rbp), %eax 	//записываем 0 в регистр eax (i = 0)
+	cltq
+	cmpq	%rax, -32(%rbp) 	//сравнение (i < n)
+	jg	.L11
+	movl	$0, %eax 		//записываем 0 в регистр eax
+	leave
+	.cfi_def_cfa 7, 8
+	ret
+	.cfi_endproc
+.LFE8:
+	.size	main, .-main
+	.ident	"GCC: (Ubuntu 11.4.0-1ubuntu1~22.04) 11.4.0"
+	.section	.note.GNU-stack,"",@progbits
+	.section	.note.gnu.property,"a"
+	.align 8
+	.long	1f - 0f
+	.long	4f - 1f
+	.long	5
+0:
+	.string	"GNU"
+1:
+	.align 8
+	.long	0xc0000002
+	.long	3f - 2f
+2:
+	.long	0x3
+3:
+	.align 8
+4:

@@ -1,0 +1,125 @@
+	.file	"main.c"
+	.text
+	.p2align 4
+	.globl	swap
+	.type	swap, @function
+swap:
+.LFB39:
+	.cfi_startproc
+	endbr64
+	movl	(%rdi), %eax
+	movl	(%rsi), %edx
+	movl	%edx, (%rdi)
+	movl	%eax, (%rsi)
+	ret
+	.cfi_endproc
+.LFE39:
+	.size	swap, .-swap
+	.p2align 4
+	.globl	FillArray
+	.type	FillArray, @function
+FillArray:
+.LFB40:
+	.cfi_startproc
+	endbr64
+	pushq	%r12
+	.cfi_def_cfa_offset 16
+	.cfi_offset 12, -16
+	movl	$4, %esi
+	pushq	%rbp
+	.cfi_def_cfa_offset 24
+	.cfi_offset 6, -24
+	pushq	%rbx
+	.cfi_def_cfa_offset 32
+	.cfi_offset 3, -32
+	movq	%rdi, %rbx
+	call	calloc@PLT
+	movq	%rax, %r12
+	testq	%rbx, %rbx
+	jle	.L3
+	xorl	%ebp, %ebp
+	.p2align 4,,10
+	.p2align 3
+.L5:
+	call	rand@PLT
+	movslq	%eax, %rdx
+	movl	%eax, %ecx
+	imulq	$274877907, %rdx, %rdx
+	sarl	$31, %ecx
+	sarq	$38, %rdx
+	subl	%ecx, %edx
+	imull	$1000, %edx, %edx
+	subl	%edx, %eax
+	movl	%eax, (%r12,%rbp,4)
+	addq	$1, %rbp
+	cmpq	%rbp, %rbx
+	jne	.L5
+.L3:
+	movq	%r12, %rax
+	popq	%rbx
+	.cfi_def_cfa_offset 24
+	popq	%rbp
+	.cfi_def_cfa_offset 16
+	popq	%r12
+	.cfi_def_cfa_offset 8
+	ret
+	.cfi_endproc
+.LFE40:
+	.size	FillArray, .-FillArray
+	.section	.text.startup,"ax",@progbits
+	.p2align 4
+	.globl	main
+	.type	main, @function
+main:
+.LFB41:
+	.cfi_startproc
+	endbr64
+	movl	$140000, %edi
+	subq	$8, %rsp
+	.cfi_def_cfa_offset 16
+	call	FillArray
+	movl	$140000, %edi
+	movq	%rax, %r8
+	leaq	559996(%rax), %rsi
+.L9:
+	movq	%r8, %rax
+	.p2align 4,,10
+	.p2align 3
+.L11:
+	movl	(%rax), %edx
+	movl	4(%rax), %ecx
+	cmpl	%ecx, %edx
+	jle	.L10
+	movl	%ecx, (%rax)
+	movl	%edx, 4(%rax)
+.L10:
+	addq	$4, %rax
+	cmpq	%rsi, %rax
+	jne	.L11
+	subl	$1, %edi
+	jne	.L9
+	xorl	%eax, %eax
+	addq	$8, %rsp
+	.cfi_def_cfa_offset 8
+	ret
+	.cfi_endproc
+.LFE41:
+	.size	main, .-main
+	.ident	"GCC: (Ubuntu 11.4.0-1ubuntu1~22.04) 11.4.0"
+	.section	.note.GNU-stack,"",@progbits
+	.section	.note.gnu.property,"a"
+	.align 8
+	.long	1f - 0f
+	.long	4f - 1f
+	.long	5
+0:
+	.string	"GNU"
+1:
+	.align 8
+	.long	0xc0000002
+	.long	3f - 2f
+2:
+	.long	0x3
+3:
+	.align 8
+4:

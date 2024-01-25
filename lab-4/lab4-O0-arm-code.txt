@@ -1,0 +1,117 @@
+swap:
+        sub     sp, sp, #32
+        str     x0, [sp, 8]
+        str     x1, [sp]
+        ldr     x0, [sp, 8]
+        ldr     w0, [x0]
+        str     w0, [sp, 28]
+        ldr     x0, [sp]
+        ldr     w1, [x0]
+        ldr     x0, [sp, 8]
+        str     w1, [x0]
+        ldr     x0, [sp]
+        ldr     w1, [sp, 28]
+        str     w1, [x0]
+        nop
+        add     sp, sp, 32
+        ret
+FillArray:
+        stp     x29, x30, [sp, -48]!
+        mov     x29, sp
+        str     x0, [sp, 24]
+        ldr     x0, [sp, 24]
+        mov     x1, 4
+        bl      calloc
+        str     x0, [sp, 32]
+        str     wzr, [sp, 44]
+        b       .L3
+.L4:
+        bl      rand
+        mov     w1, w0
+        ldrsw   x0, [sp, 44]
+        lsl     x0, x0, 2
+        ldr     x2, [sp, 32]
+        add     x2, x2, x0
+        mov     w0, 19923
+        movk    w0, 0x1062, lsl 16
+        smull   x0, w1, w0
+        lsr     x0, x0, 32
+        asr     w3, w0, 6
+        asr     w0, w1, 31
+        sub     w0, w3, w0
+        mov     w3, 1000
+        mul     w0, w0, w3
+        sub     w0, w1, w0
+        str     w0, [x2]
+        ldr     w0, [sp, 44]
+        add     w0, w0, 1
+        str     w0, [sp, 44]
+.L3:
+        ldrsw   x0, [sp, 44]
+        ldr     x1, [sp, 24]
+        cmp     x1, x0
+        bgt     .L4
+        ldr     x0, [sp, 32]
+        ldp     x29, x30, [sp], 48
+        ret
+main:
+        stp     x29, x30, [sp, -48]!
+        mov     x29, sp
+        mov     x0, 8928
+        movk    x0, 0x2, lsl 16
+        str     x0, [sp, 32]
+        ldr     x0, [sp, 32]
+        bl      FillArray
+        str     x0, [sp, 24]
+        str     wzr, [sp, 44]
+        b       .L7
+.L11:
+        str     wzr, [sp, 40]
+        b       .L8
+.L10:
+        ldrsw   x0, [sp, 40]
+        lsl     x0, x0, 2
+        ldr     x1, [sp, 24]
+        add     x0, x1, x0
+        ldr     w1, [x0]
+        ldrsw   x0, [sp, 40]
+        add     x0, x0, 1
+        lsl     x0, x0, 2
+        ldr     x2, [sp, 24]
+        add     x0, x2, x0
+        ldr     w0, [x0]
+        cmp     w1, w0
+        ble     .L9
+        ldrsw   x0, [sp, 40]
+        lsl     x0, x0, 2
+        ldr     x1, [sp, 24]
+        add     x2, x1, x0
+        ldrsw   x0, [sp, 40]
+        add     x0, x0, 1
+        lsl     x0, x0, 2
+        ldr     x1, [sp, 24]
+        add     x0, x1, x0
+        mov     x1, x0
+        mov     x0, x2
+        bl      swap
+.L9:
+        ldr     w0, [sp, 40]
+        add     w0, w0, 1
+        str     w0, [sp, 40]
+.L8:
+        ldrsw   x1, [sp, 40]
+        ldr     x0, [sp, 32]
+        sub     x0, x0, #1
+        cmp     x1, x0
+        blt     .L10
+        ldr     w0, [sp, 44]
+        add     w0, w0, 1
+        str     w0, [sp, 44]
+.L7:
+        ldrsw   x0, [sp, 44]
+        ldr     x1, [sp, 32]
+        cmp     x1, x0
+        bgt     .L11
+        mov     w0, 0
+        ldp     x29, x30, [sp], 48
+        ret
